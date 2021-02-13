@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Chart.Name }}"
+  labels:
+    app: "{{ .Chart.Name }}"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: "{{ .Chart.Name }}"
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app: "{{ .Chart.Name }}"
+    spec:
+      containers:
+        - image: "@docker.registry.username@/{{  .Chart.Name }}:{{ .Chart.AppVersion }}"
+          name: "{{ .Chart.Name }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: {{ .Values.volumeMounts.config.mountPath }}
+              name: {{ .Chart.Name }}
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: "{{ .Chart.Name }}"
+            items:
+              - key: application.properties
+                path: application.properties
+          name: {{ .Chart.Name }}

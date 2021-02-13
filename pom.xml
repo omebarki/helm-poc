@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.4.2</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>omar.mebarki</groupId>
+    <artifactId>helm-poc</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>helm-poc</name>
+    <description>Demo project for Helm</description>
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-openshift</id>
+                        <!-- insert here the phase you need -->
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/helm</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/helm</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>2.7.1</version>
+                <configuration>
+                    <from>
+                        <image>adoptopenjdk/openjdk11:latest</image>h
+                        <auth>
+                            <username>${docker.registry.username}</username>
+                            <password>${docker.registry.password}</password>
+                        </auth>
+                    </from>
+                    <to>
+                        <image>docker.io/${docker.registry.username}/${project.artifactId}:${project.version}</image>
+                        <auth>
+                            <username>${docker.registry.username}</username>
+                            <password>${docker.registry.password}</password>
+                        </auth>
+                    </to>
+                    <containerizingMode>packaged</containerizingMode>
+                    <container>
+                        <extraClasspath>/app/config</extraClasspath>
+                        <jvmFlags>
+                            <jvmFlag>-Xmx1g</jvmFlag>
+                        </jvmFlags>
+                        <workingDirectory>/app</workingDirectory>
+                        <volumes>
+                            <volume>/app/config</volume>
+                        </volumes>
+                    </container>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
